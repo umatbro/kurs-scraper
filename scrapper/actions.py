@@ -2,6 +2,7 @@ import logging
 import scrapper.config as cfg
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
+import time
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -30,3 +31,14 @@ def login(driver: webdriver.Firefox):
   form = driver.find_element_by_tag_name('form')
   
   form.submit()
+
+def go_to_next_slide(driver: webdriver.Firefox):
+  time.sleep(3)
+  logger.debug('Setting seconds to 0')
+  driver.execute_script('console.log("xdd");')
+  driver.execute_script('window.secs = 0; console.log(window.secs)')
+  time.sleep(1)
+  button_next = driver.find_element_by_id('btnDalej')
+  logger.info('Clicking button next')
+
+  button_next.click()

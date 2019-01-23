@@ -11,3 +11,5 @@ def run():
   logger.info('Executing')
   driver = webdriver.Firefox()
   actions.login(driver)
+  # TODO Read slide content
+  # actions.go_to_next_slide(driver)
