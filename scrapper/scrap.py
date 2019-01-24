@@ -10,6 +10,8 @@ logger.setLevel(logging.INFO)
 def run():
   logger.info('Executing')
   driver = webdriver.Firefox()
-  actions.login(driver)
+  ph = actions.PageHandler(driver)
+  ph.login()
   # TODO Read slide content
-  # actions.go_to_next_slide(driver)
+  # ph.go_to_next_slide()
+  
