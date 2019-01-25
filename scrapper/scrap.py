@@ -8,10 +8,8 @@ logger.setLevel(logging.INFO)
 
 
 def run():
-  logger.info('Executing')
+  logger.info('Starting to scrap')
   driver = webdriver.Firefox()
   ph = actions.PageHandler(driver)
   ph.login()
-  # TODO Read slide content
-  # ph.go_to_next_slide()
-  
+  ph.read_and_save_slides(2)
