@@ -12,4 +12,5 @@ def run():
   driver = webdriver.Firefox()
   ph = actions.PageHandler(driver)
   ph.login()
-  ph.read_and_save_slides(2)
+  ph.read_and_save_pages_until_next_button_is_not_present()
+  logger.info('Finished logging')

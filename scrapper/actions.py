@@ -2,6 +2,7 @@ import io
 import os
 import re
 import logging
+from typing import Union
 import scrapper.config as cfg
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -60,6 +61,17 @@ class PageHandler:
       logger.exception(e)
       raise e
 
+  def _next_button_is_present(self) -> Union[WebElement, None]:
+    try:
+      element = WebDriverWait(self.driver, 5).until(
+        EC.presence_of_element_located((By.ID, 'btnDalej'))
+      )
+      logger.debug(f'Found button element: {element}')
+      return element
+    except TimeoutException:
+      logger.info(f'Button \'Next\' was not found.')
+      return None
+
   def click_next(self):
     self._wait_for_slide_content_to_load()
     self.driver.execute_script('window.secs = 0;')
@@ -70,6 +82,23 @@ class PageHandler:
   def find_content_nodes(self):
     # wait for content to load
     slide_content = self._wait_for_slide_content_to_load()
+    shown_nodes = self.driver.find_elements_by_css_selector('p.slajd_list')
+    logger.debug(f'Length of shown nodes: {len(shown_nodes)}.')
+
+    if len(shown_nodes) > 1:
+      logger.warning(f'Length of shown nodes is longer than expected ({len(shown_nodes)}).')
+
+    hidden_nodes = self.driver.find_elements_by_css_selector('p.slajd_list_hidden')
+    logger.debug(f'Length of hidden nodes: {len(hidden_nodes)}.')
+    
+    while not all([element.is_displayed() for element in hidden_nodes]):
+      logger.debug('Clicking next')
+      self.click_next()
+
+    logger.debug('All nodes should be visible')
+
+  def reveal_hidden_text_by_clicking_next(self):
+    self._wait_for_slide_content_to_load()
     shown_nodes = self.driver.find_elements_by_css_selector('p.slajd_list')
     logger.debug(f'Length of shown nodes: {len(shown_nodes)}.')
 
@@ -115,6 +144,18 @@ class PageHandler:
     with open(save_path, 'a+', encoding='utf-8') as f:
       for _ in range(number_of_slides):
         self.find_content_nodes()
+        html = self.get_page_inner_html()
+        slide_name = self.get_slide_name()
+        logger.info(f'Saving slide {slide_name}')
+        to_write = f'<article>\n<h3>{slide_name}</h3>\n{html}\n</article>\n'
+        f.write(to_write)
+        self.click_next()
+
+  def read_and_save_pages_until_next_button_is_not_present(self, save_path=os.path.join(BASE_DIR, 'out.html')):
+    self._wait_for_slide_content_to_load()
+    with open(save_path, 'a+', encoding='utf-8') as f:
+      while self._next_button_is_present():
+        self.reveal_hidden_text_by_clicking_next()
         html = self.get_page_inner_html()
         slide_name = self.get_slide_name()
         logger.info(f'Saving slide {slide_name}')
