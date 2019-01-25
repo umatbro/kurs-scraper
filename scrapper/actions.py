@@ -5,7 +5,7 @@ import logging
 from typing import Union
 import scrapper.config as cfg
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -71,6 +71,13 @@ class PageHandler:
     except TimeoutException:
       logger.info(f'Button \'Next\' was not found.')
       return None
+    except UnexpectedAlertPresentException as e:
+          logger.warning('This slide requires your attention. Please interact with the site and type "go" in the console to continue')
+          inpt = ''
+          while inpt != 'go':
+            inpt = input('Type "go"> ')
+          return True
+          
 
   def click_next(self):
     self._wait_for_slide_content_to_load()
@@ -162,6 +169,6 @@ class PageHandler:
         to_write = f'<article>\n<h3>{slide_name}</h3>\n{html}\n</article>\n'
         f.write(to_write)
         self.click_next()
-
+          
   def close_browser(self):
     self.driver.close()
