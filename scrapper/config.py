@@ -20,10 +20,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_config() -> dict:
-  logger.debug('Opening config file')
-  with open('config.yaml') as f:
-    parsed = yaml.safe_load(f)
-    logger.debug(f'Parsed content: {parsed}')
-    return parsed
 
+def get_config() -> dict:
+    logger.debug('Opening config file')
+    with open('config.yaml') as f:
+        parsed = yaml.safe_load(f)
+        logger.debug(f'Parsed content: {parsed}')
+        return parsed

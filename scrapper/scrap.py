@@ -1,4 +1,3 @@
-import sys
 import logging
 from selenium import webdriver
 from scrapper import actions
@@ -8,9 +7,9 @@ logger.setLevel(logging.INFO)
 
 
 def run():
-  logger.info('Starting to scrap')
-  driver = webdriver.Firefox()
-  ph = actions.PageHandler(driver)
-  ph.login()
-  ph.read_and_save_pages_until_next_button_is_not_present()
-  logger.info('Finished logging')
+    logger.info('Starting to scrap')
+    driver = webdriver.Firefox()
+    ph = actions.PageHandler(driver)
+    ph.login()
+    ph.read_and_save_pages_until_next_button_is_not_present()
+    logger.info('Finished logging')
