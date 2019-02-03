@@ -2,7 +2,7 @@ import io
 import os
 import re
 import logging
-from typing import Union
+from typing import Union, List
 import scrapper.config as cfg
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException
@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 import time
 from main import BASE_DIR
+from scrapper.exceptions import AnswersNotFoundError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -73,12 +74,16 @@ class PageHandler:
             logger.info(f'Button \'Next\' was not found.')
             return None
         except UnexpectedAlertPresentException as e:
-            logger.warning(
-                'This slide requires your attention. Please interact with the site and type "go" in the console to continue')
-            inpt = ''
-            while inpt != 'go':
-                inpt = input('Type "go"> ')
-            return True
+            try:
+                self.answer_questions(self.get_valid_answers())
+            except AnswersNotFoundError:
+                logger.warning(
+                    'This slide requires your attention. Please interact with the site and type "go" in the console to continue')
+                inpt = ''
+                while inpt != 'go':
+                    inpt = input('Type "go"> ')
+            finally:
+                return True
 
     def click_next(self):
         self._wait_for_slide_content_to_load()
@@ -128,6 +133,35 @@ class PageHandler:
     def get_page_text(self) -> str:
         content = self.get_slide_element()
         return content.text
+
+    def get_valid_answers(self) -> list:
+        """
+        :return: ids of elements with valid answers
+        """
+        self._wait_for_slide_content_to_load()
+        script_elements = self.driver.find_elements_by_tag_name('script')
+        answer_line = ''
+        for el in script_elements:
+            script_txt = el.get_attribute('innerText')
+            for line in script_txt.split('\n'):  # type: str
+                clean = line.strip()
+                if clean.startswith('var odpowiedzi = '):
+                    logger.debug('Found line with answers.')
+                    answer_line = clean
+                    break
+
+        logger.debug(f'Line with answers: {answer_line}')
+        answers_line_pattern = re.compile(r'var odpowiedzi = {\s*([A-z0-9_]+:\s*"(?P<el>[A-z0-9_]+)",?\s*)+};$')
+        match = re.match(answers_line_pattern, answer_line)
+        if not match:
+            logger.warning('Answers were not found in the script.')
+            raise AnswersNotFoundError
+        answers_pattern = re.compile(r'"?[A-z0-9_]+"?:\s*"(?P<id>[A-z0-9_)]+)"')
+        return re.findall(answers_pattern, answer_line)
+
+    def answer_questions(self, ids: List[str]):
+        for el_id in ids:
+            self.driver.find_element_by_id(el_id).click()
 
     def get_page_screenshot(self) -> io.BytesIO:
         content = self.get_slide_element()
