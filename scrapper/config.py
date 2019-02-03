@@ -11,6 +11,8 @@ credentials:
 trainer-credentials:
   login: <login>
   password: <password>
+
+outfile: 'out.html'
 """
 
 import yaml

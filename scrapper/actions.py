@@ -158,7 +158,7 @@ class PageHandler:
         f.write(to_write)
         self.click_next()
 
-  def read_and_save_pages_until_next_button_is_not_present(self, save_path=os.path.join(BASE_DIR, 'out.html')):
+  def read_and_save_pages_until_next_button_is_not_present(self, save_path=os.path.join(BASE_DIR, config['outfile'])):
     self._wait_for_slide_content_to_load()
     with open(save_path, 'a+', encoding='utf-8') as f:
       while self._next_button_is_present():

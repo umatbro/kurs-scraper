@@ -4,4 +4,4 @@ __pycache__
 
 config.yaml
 geckodriver.log
-out.html
+*.html
